@@ -1,0 +1,140 @@
+---
+title: "Sphingolipid_PCA_Biplot_Heatmap_Analysis"
+author: "Napier Lab"
+date: "2023-04-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Load packages
+```{r}
+require(RColorBrewer)
+require(ggplot2)
+require(ggfortify)
+require(pheatmap)
+require(reshape2)
+require(gplots)
+require(iheatmapr)
+require(plyr)
+require(ggdendro)
+require(glmulti)
+require(factoextra)
+require(readr)
+require(ggplot)
+require(rJava)
+require(dplyr)
+require(tibble)
+require(stringr)
+require(FactoMineR)
+```
+
+#Import the data, scale the lipidomic data, add back in diet group names
+```{r}
+setwd("~/Desktop/Amy Fatty Acid Data/PC Data And Analysis") #change file path to match the location of your data
+NIH_PC_SCKD <- read.csv("PCsSCKD.csv", header= T, blank.lines.skip = TRUE, as.is=)
+rownames(NIH_PC_SCKD) <- as.character(NIH_PC_SCKD$X)
+NIH_PC_SCKD$X <- NULL
+NIH_PC_SCKD$names <- rownames(NIH_PC_SCKD)
+head(NIH_PC_SCKD)
+
+pca_NIH_PC_SCKD <- scale(NIH_PC_SCKD[1:65]) #select only the quantitative lipidomic data for scaling
+pca_NIH_PC_SCKD[is.na(pca_NIH_PC_SCKD)] <- 0 # set NA values to O
+pca_NIH_PC_SCKD <- as.data.frame(pca_NIH_PC_SCKD)
+pca_NIH_PC_SCKD$diet <- NIH_PC_SCKD$Diet #assign diet groups to scaled data
+pca_NIH_PC_SCKD$names <- NIH_PC_SCKD$names
+head(pca_NIH_PC_SCKD)
+```
+
+#Creation of PCA with confidence ellipses (Figure 1A)
+```{r}
+groups <- as.factor(pca_NIH_PC_SCKD$diet) #assign sample diet groups as a factor
+groups <- droplevels(groups)
+fviz_pca_ind(prcomp(pca_NIH_PC_SCKD[1:65]),
+             col.ind = groups, # color by groups
+             palette = c('#FC8008', '#807F7F'),
+             addEllipses = TRUE, # Concentration ellipses
+             ellipse.type = "confidence", #set to confidence ellipse
+             ellipse.level=0.95, #settting for what % confidence
+             legend.title = "Diet",
+             repel = TRUE,
+             labels=TRUE,
+             labelsize=8,
+             title="",
+             show.legend=TRUE,
+              mean.point=FALSE,
+             label="none",
+            legend= "none",
+             pointsize=5,
+             pointshape=19,
+            
+) +
+  theme(text = element_text(family="Arial", size = 24), #all of ths is for changing the look of the image
+        axis.title = element_text(family="Arial", size = 24),
+        axis.text = element_text(family="Arial", size = 24), 
+        legend.text= element_text(family="Arial", size=24), 
+        #legend.position= "right",
+        panel.grid.major=element_blank(), 
+        panel.grid.minor=element_blank(), 
+        axis.line=element_line()
+) +
+  xlim(-12,12) + ylim(-5,5)
+
+```
+
+#Creation of the sphingolipid biplot. In this context LS1, LS2, and LS3 in the resulting figure are the same as SC1, SC2, and SC3. Sphingolipid variables (vectors) that are close together and form small angles with one another are positively correlated. Variables point in the direction of the principal component(s) they strongly influence. In the sphingolipid biplot, all of the variables point along the PC1 axis towards the KD samples indicated that the KD samples are relatively more enriched in these spingolipids. This enrichment strongly contributes to the separation of the KD and SC as the SC samples group towards the opposite side of PC1, away from where the variables are pointing.
+```{r}
+
+fviz_pca_biplot(prcomp(pca_NIH_PC_SCKD[1:65]),
+             select.var =  list(contrib=5),
+             repel = TRUE,
+             col.ind = groups, # color by groups
+             palette = c('#FC8008', '#807F7F'),
+             labelsize=5,
+             title="",
+             show.legend=TRUE,
+              mean.point=FALSE,
+             labels=TRUE,
+            legend= TRUE,
+            legend.title= "Diet",
+             pointsize=4,
+             pointshape=19,
+            #axes.linetype=NA
+) +
+  theme(text = element_text(family="Arial", size = 24),
+        axis.text = element_text(family="Arial", size = 24), 
+        legend.text= element_text(family="Arial", size=24), 
+        legend.position= "right",
+        panel.grid.major=element_blank(), 
+        panel.grid.minor=element_blank(), 
+        axis.line=element_line()
+) 
+
+```
+
+#Creation of sphingolipid heatmap (Figure 1C)
+```{r}
+data <- read.csv("/Users/hickman6/Desktop/Amy Fatty Acid Data/PC Data And Analysis/pHeatmapPCsSCKD.csv", header= T, blank.lines.skip = TRUE, as.is=) #change file path to match where your data file is located. This file has the data transposed to work with the pheatmap function and the group and time data removed. Instead of having a separate file you can also use the t() function to transpose the data and specifically choose the fatty acid data.
+rownames(data) <- as.character(data$X)
+data$X <- NULL
+data <- as.data.frame(data)
+
+my_sample_col <- data.frame(Diet = factor(rep(c("KD", "SC"),each=3))) #assigning diet groups to samples
+row.names(my_sample_col) <- colnames(data)
+my_sample_col$Diet = factor(my_sample_col$Diet, levels = c("KD", "SC")) #create factor with diets
+my_color = list(Diet = c(KD="#FC8008", SC="#807F7F")) #assign colors to diets for the heatmap
+
+pheatmap(data, 
+         scale="row", #scale the data based on rows
+         fontsize_row= 6, 
+         color=colorRampPalette(c("blue", "white", "red"))(50), 
+         cellwidth=8, 
+         cellheight=8,
+         treeheight_row=0, 
+         treeheight_col=12, 
+         annotation_col = my_sample_col, 
+         annotation_colors =my_color,
+         legend=TRUE)
+```
