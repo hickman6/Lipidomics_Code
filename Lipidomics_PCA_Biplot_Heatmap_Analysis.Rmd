@@ -1,5 +1,5 @@
 ---
-title: "Sphingolipid_PCA_Biplot_Heatmap_Analysis"
+title: "Phosphotidylcholine_PCA_Biplot_Heatmap_Analysis"
 author: "Napier Lab"
 date: "2023-04-14"
 output: html_document
@@ -84,7 +84,7 @@ fviz_pca_ind(prcomp(pca_NIH_PC_SCKD[1:65]),
 
 ```
 
-#Creation of the sphingolipid biplot. In this context LS1, LS2, and LS3 in the resulting figure are the same as SC1, SC2, and SC3. Sphingolipid variables (vectors) that are close together and form small angles with one another are positively correlated. Variables point in the direction of the principal component(s) they strongly influence. In the sphingolipid biplot, all of the variables point along the PC1 axis towards the KD samples indicated that the KD samples are relatively more enriched in these spingolipids. This enrichment strongly contributes to the separation of the KD and SC as the SC samples group towards the opposite side of PC1, away from where the variables are pointing.
+#Creation of the phosphotidylcholine biplot. In this context LS1, LS2, and LS3 in the resulting figure are the same as SC1, SC2, and SC3. Phosphotidylcholine variables (vectors) that are close together and form small angles with one another are positively correlated. Variables point in the direction of the principal component(s) they strongly influence. In the phosphotidylcholine biplot, all of the variables point along the PC1 axis towards the KD samples indicated that the KD samples are relatively more enriched in these phosphotidylcholines. This enrichment strongly contributes to the separation of the KD and SC as the SC samples group towards the opposite side of PC1, away from where the variables are pointing.
 ```{r}
 
 fviz_pca_biplot(prcomp(pca_NIH_PC_SCKD[1:65]),
@@ -114,7 +114,7 @@ fviz_pca_biplot(prcomp(pca_NIH_PC_SCKD[1:65]),
 
 ```
 
-#Creation of sphingolipid heatmap (Figure 1C)
+#Creation of phosphotidylcholine heatmap (Figure 1C)
 ```{r}
 data <- read.csv("/Users/hickman6/Desktop/Amy Fatty Acid Data/PC Data And Analysis/pHeatmapPCsSCKD.csv", header= T, blank.lines.skip = TRUE, as.is=) #change file path to match where your data file is located. This file has the data transposed to work with the pheatmap function and the group and time data removed. Instead of having a separate file you can also use the t() function to transpose the data and specifically choose the fatty acid data.
 rownames(data) <- as.character(data$X)
